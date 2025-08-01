@@ -85,14 +85,14 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
   - [x] GET `/api/users/{user_id}` - Get public user profile
   - [x] GET `/api/users/{user_id}/items` - Get user's items
 
-- [ ] **2.2** Item Management
-  - [ ] POST `/api/items` - Create new item listing
-  - [ ] GET `/api/items` - List all items (with filters)
-  - [ ] GET `/api/items/{item_id}` - Get item details
-  - [ ] PUT `/api/items/{item_id}` - Update item
-  - [ ] DELETE `/api/items/{item_id}` - Delete item
-  - [ ] POST `/api/items/{item_id}/images` - Upload item images
-  - [ ] DELETE `/api/items/{item_id}/images/{image_id}` - Delete item image
+- [x] **2.2** Item Management
+  - [x] POST `/api/items` - Create new item listing
+  - [x] GET `/api/items` - List all items (with filters)
+  - [x] GET `/api/items/{item_id}` - Get item details
+  - [x] PUT `/api/items/{item_id}` - Update item
+  - [x] DELETE `/api/items/{item_id}` - Delete item
+  - [x] POST `/api/items/{item_id}/images` - Upload item images
+  - [x] DELETE `/api/items/{item_id}/images/{image_id}` - Delete item image
 
 - [ ] **2.3** Category Management
   - [ ] GET `/api/categories` - List all categories
