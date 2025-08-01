@@ -22,9 +22,27 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
   - TradeItem model for managing items within trades
   - Tortoise ORM integration with proper relationships and indexes
 
+- **Phase 1.3**: Authentication & Authorization ✅
+  - JWT token authentication with access and refresh tokens
+  - User registration and login endpoints
+  - Password hashing with bcrypt
+  - Password reset functionality (placeholder for email)
+  - Authentication middleware and dependencies
+  - Role-based access control
+
+- **Phase 2.1**: User Management API ✅
+  - User registration and authentication endpoints
+  - Profile management (get, update, preferences)
+  - User statistics and activity tracking
+  - User search and filtering with pagination
+  - Public user profiles and items
+  - Account management (deactivate, delete)
+
 ### 🔄 **Current Progress**
-- **Phase 1.3**: Authentication & Authorization (Next)
-- **Phase 2**: Core API Endpoints (Pending)
+- **Phase 1.3**: Authentication & Authorization ✅
+- **Phase 2.1**: User Management API ✅
+- **Phase 2.2**: Item Management API (Pending)
+- **Phase 2.3**: Category Management API (Pending)
 - **Phase 3**: Trading System (Pending)
 
 ### **Phase 1: Project Setup & Foundation**

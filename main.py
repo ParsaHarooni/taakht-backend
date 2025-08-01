@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings, setup_logging, init_db, close_db
 from src.middlewares.cors import setup_cors
+from src.routes import users
 
 # Setup logging
 logger = setup_logging()
@@ -41,6 +42,9 @@ app = FastAPI(
 
 # Setup middleware
 setup_cors(app)
+
+# Include routers
+app.include_router(users.router)
 
 # Add additional middleware for production
 if settings.ENVIRONMENT == "production":
