@@ -14,12 +14,13 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
   - Docker and Docker Compose setup
 
 - **Phase 1.2**: Database Models & Migrations ✅
-  - User model with authentication fields
-  - Item model for trading items
-  - Trade model for item exchanges
-  - Category model for item organization
-  - ItemImage model for media storage
-  - Tortoise ORM integration
+  - User model with authentication fields, profile data, and statistics
+  - Item model for trading items with comprehensive details and location
+  - Trade model for item exchanges with multi-item support and counter offers
+  - Category model for hierarchical item organization
+  - ItemImage model for media storage with metadata and processing
+  - TradeItem model for managing items within trades
+  - Tortoise ORM integration with proper relationships and indexes
 
 ### 🔄 **Current Progress**
 - **Phase 1.3**: Authentication & Authorization (Next)
