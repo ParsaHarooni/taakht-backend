@@ -1,3 +1,9 @@
+"""Item management schemas for Taakht backend.
+
+This module provides Pydantic schemas for item-related API requests and responses,
+including validation, serialization, and deserialization of item data.
+"""
+
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
@@ -33,7 +39,7 @@ class ItemCreateRequest(BaseModel):
 
     # Optional location
     city: Optional[str] = Field(None, max_length=100, description="City")
-    state: Optional[str] = Field(None, max_length=100, description="State/Province")
+    state: Optional[str] = Field(None, max_length=100, description="State")
     country: Optional[str] = Field(None, max_length=100, description="Country")
     latitude: Optional[float] = Field(None, ge=-90, le=90, description="Latitude")
     longitude: Optional[float] = Field(None, ge=-180, le=180, description="Longitude")
@@ -54,7 +60,9 @@ class ItemCreateRequest(BaseModel):
 
     # SEO
     meta_title: Optional[str] = Field(None, max_length=255, description="SEO title")
-    meta_description: Optional[str] = Field(None, description="SEO description")
+    meta_description: Optional[str] = Field(
+        None, max_length=500, description="SEO description"
+    )
 
 
 class ItemUpdateRequest(BaseModel):
@@ -95,7 +103,7 @@ class ItemUpdateRequest(BaseModel):
 
     # SEO
     meta_title: Optional[str] = Field(None, max_length=255)
-    meta_description: Optional[str] = None
+    meta_description: Optional[str] = Field(None, max_length=500)
 
 
 class ItemResponse(BaseModel):
@@ -106,35 +114,34 @@ class ItemResponse(BaseModel):
     description: str
     condition: ItemCondition
     status: ItemStatus
-    owner_id: int
-    category_id: Optional[int]
-    estimated_value: Optional[Decimal]
+    category_id: Optional[int] = None
+    estimated_value: Optional[Decimal] = None
     currency: str
-    weight_kg: Optional[float]
-    length_cm: Optional[float]
-    width_cm: Optional[float]
-    height_cm: Optional[float]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    latitude: Optional[float]
-    longitude: Optional[float]
+    weight_kg: Optional[float] = None
+    length_cm: Optional[float] = None
+    width_cm: Optional[float] = None
+    height_cm: Optional[float] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     tags: List[str]
     attributes: Dict[str, Any]
-    trade_for: Optional[str]
+    trade_for: Optional[str] = None
     trade_radius_km: int
     shipping_available: bool
     local_pickup_only: bool
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    slug: str
     view_count: int
     favorite_count: int
     trade_offer_count: int
-    slug: str
-    meta_title: Optional[str]
-    meta_description: Optional[str]
     created_at: datetime
     updated_at: datetime
     listed_at: datetime
-    last_viewed_at: Optional[datetime]
+    last_viewed_at: Optional[datetime] = None
 
     # Owner information
     owner_username: Optional[str] = None
@@ -148,8 +155,7 @@ class ItemResponse(BaseModel):
     dimensions: Dict[str, Optional[float]]
     location: Dict[str, Optional[str]]
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class ItemListResponse(BaseModel):
@@ -250,7 +256,7 @@ class ItemStatsResponse(BaseModel):
     total_views: int
     total_favorites: int
     total_trade_offers: int
-    average_value: Optional[Decimal]
+    average_value: Optional[Decimal] = None
     currency: str
 
 
@@ -272,7 +278,6 @@ class ItemBulkUpdateRequest(BaseModel):
 
     item_ids: List[int] = Field(..., description="List of item IDs to update")
     status: Optional[ItemStatus] = Field(None, description="New status for all items")
-    category_id: Optional[int] = Field(None, description="New category for all items")
     tags: Optional[List[str]] = Field(None, description="New tags for all items")
 
 

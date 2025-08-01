@@ -1,3 +1,9 @@
+"""Database configuration and initialization for Taakht backend.
+
+This module handles Tortoise ORM database configuration, connection management,
+and initialization for different database backends (SQLite, PostgreSQL).
+"""
+
 import logging
 from pathlib import Path
 
@@ -19,7 +25,7 @@ def get_tortoise_config():
         db_dir = Path(db_path).parent
         if db_dir != Path("."):
             db_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created database directory: {db_dir}")
+            logger.info("Created database directory: %s", db_dir)
 
         return {
             "connections": {
@@ -47,38 +53,38 @@ def get_tortoise_config():
             "use_tz": False,
             "timezone": "UTC",
         }
-    else:
-        # PostgreSQL configuration
-        return {
-            "connections": {
-                "default": {
-                    "engine": "tortoise.backends.asyncpg",
-                    "credentials": {
-                        "database": settings.DATABASE_URL.split("/")[-1],
-                        "host": "localhost",
-                        "password": None,
-                        "port": 5432,
-                        "user": "postgres",
-                        "dsn": settings.DATABASE_URL,
-                    },
-                }
-            },
-            "apps": {
-                "models": {
-                    "models": [
-                        "src.models.user",
-                        "src.models.item",
-                        "src.models.trade",
-                        "src.models.category",
-                        "src.models.item_image",
-                        "src.models.role",
-                    ],
-                    "default_connection": "default",
+
+    # PostgreSQL configuration
+    return {
+        "connections": {
+            "default": {
+                "engine": "tortoise.backends.asyncpg",
+                "credentials": {
+                    "database": settings.DATABASE_URL.rsplit("/", maxsplit=1)[-1],
+                    "host": "localhost",
+                    "password": None,
+                    "port": 5432,
+                    "user": "postgres",
+                    "dsn": settings.DATABASE_URL,
                 },
+            }
+        },
+        "apps": {
+            "models": {
+                "models": [
+                    "src.models.user",
+                    "src.models.item",
+                    "src.models.trade",
+                    "src.models.category",
+                    "src.models.item_image",
+                    "src.models.role",
+                ],
+                "default_connection": "default",
             },
-            "use_tz": False,
-            "timezone": "UTC",
-        }
+        },
+        "use_tz": False,
+        "timezone": "UTC",
+    }
 
 
 async def init_db():
@@ -89,7 +95,7 @@ async def init_db():
         await Tortoise.generate_schemas()
         logger.info("Database initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+        logger.error("Failed to initialize database: %s", e)
         raise
 
 
@@ -99,7 +105,7 @@ async def close_db():
         await Tortoise.close_connections()
         logger.info("Database connections closed")
     except Exception as e:
-        logger.error(f"Failed to close database connections: {e}")
+        logger.error("Failed to close database connections: %s", e)
         raise
 
 

@@ -252,6 +252,6 @@ class AuthService:
         """Reset password using token (placeholder)."""
         # TODO: Implement token verification and password reset
         # For now, just log the request
-        
+
         logger.info(f"Password reset with token: {token[:10]}...")
         return True

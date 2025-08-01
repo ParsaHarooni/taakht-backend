@@ -1,6 +1,10 @@
-from contextlib import asynccontextmanager
+"""Taakht Backend - Item-to-Item Trading Platform.
+
+Main application entry point for the Taakht backend API.
+"""
 
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from src.config import close_db, init_db, settings, setup_logging
@@ -9,15 +13,24 @@ from src.routes import items, rbac, users
 from src.services.rbac import RBACService
 
 # Setup logging
+setup_logging()
 logger = setup_logging()
+
+# Create FastAPI app
+app = FastAPI(
+    title="Taakht API",
+    description="Item-to-Item Trading Platform API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI application."""
+    """Application lifespan manager for startup and shutdown events."""
     # Startup
-    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info("Starting Taakht Backend...")
 
     # Initialize database
     await init_db()
@@ -30,23 +43,36 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    logger.info("Shutting down application...")
+    logger.info("Shutting down Taakht Backend...")
     await close_db()
     logger.info("Application shutdown complete")
 
 
-# Create FastAPI application
-app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG,
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
-    lifespan=lifespan,
-)
+# Set lifespan
+app.router.lifespan_context = lifespan
 
-# Setup middleware
+# Setup CORS
 setup_cors(app)
+
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {
+        "message": "Welcome to Taakht API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "redoc": "/redoc",
+    }
+
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "taakht-backend"}
+
 
 # Include routers
 app.include_router(users.router)
@@ -57,38 +83,14 @@ app.include_router(items.router)
 if settings.ENVIRONMENT == "production":
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["*"],  # Configure this properly in production
-    )
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": f"Welcome to {settings.APP_NAME}",
-        "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT,
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "environment": settings.ENVIRONMENT}
-
-
-def main():
-    """Main function to run the application."""
-    uvicorn.run(
-        "main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower(),
-    )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.ENVIRONMENT == "development",
+        log_level=settings.LOG_LEVEL.lower(),
+    )

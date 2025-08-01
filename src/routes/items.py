@@ -1,3 +1,9 @@
+"""Item management API routes for Taakht backend.
+
+This module provides comprehensive API endpoints for item management including
+CRUD operations, search, filtering, and advanced features like bulk operations.
+"""
+
 import logging
 from typing import Optional
 
@@ -38,24 +44,24 @@ async def create_item(
 
     # Get full item with related data
     full_item = await ItemService.get_item_by_id(item.id)
-    return ItemResponse.from_orm(full_item)
+    return ItemResponse.model_validate(full_item)
 
 
 @router.get("/", response_model=ItemListResponse)
 async def list_items(
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
-    status: Optional[ItemStatus] = Query(None, description="Filter by status"),
+    item_status: Optional[ItemStatus] = Query(None, description="Filter by status"),
     category_id: Optional[int] = Query(None, description="Filter by category"),
     owner_id: Optional[int] = Query(None, description="Filter by owner"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    _: Optional[User] = Depends(get_optional_user),
 ):
     """List items with basic filtering."""
     # Build search request
     search_data = ItemSearchRequest(
         page=page,
         per_page=per_page,
-        status=status,
+        status=item_status,
         category_id=category_id,
         owner_id=owner_id,
     )
@@ -65,7 +71,7 @@ async def list_items(
     total_pages = (total + per_page - 1) // per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=page,
         per_page=per_page,
@@ -76,7 +82,7 @@ async def list_items(
 @router.post("/search", response_model=ItemListResponse)
 async def search_items(
     search_data: ItemSearchRequest,
-    current_user: Optional[User] = Depends(get_optional_user),
+    _: Optional[User] = Depends(get_optional_user),
 ):
     """Advanced item search with multiple filters."""
     items, total = await ItemService.search_items(search_data)
@@ -84,7 +90,7 @@ async def search_items(
     total_pages = (total + search_data.per_page - 1) // search_data.per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=search_data.page,
         per_page=search_data.per_page,
@@ -108,7 +114,7 @@ async def get_item(
     if current_user:
         await ItemService.increment_view_count(item_id)
 
-    return ItemResponse.from_orm(item)
+    return ItemResponse.model_validate(item)
 
 
 @router.get("/slug/{slug}", response_model=ItemResponse)
@@ -127,7 +133,7 @@ async def get_item_by_slug(
     if current_user:
         await ItemService.increment_view_count(item.id)
 
-    return ItemResponse.from_orm(item)
+    return ItemResponse.model_validate(item)
 
 
 @router.put("/{item_id}", response_model=ItemResponse)
@@ -141,7 +147,7 @@ async def update_item(
 
     # Get full item with related data
     full_item = await ItemService.get_item_by_id(item.id)
-    return ItemResponse.from_orm(full_item)
+    return ItemResponse.model_validate(full_item)
 
 
 @router.delete("/{item_id}")
@@ -167,7 +173,7 @@ async def get_my_items(
     total_pages = (total + per_page - 1) // per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=page,
         per_page=per_page,
@@ -180,7 +186,7 @@ async def get_user_items(
     user_id: int = Path(..., description="User ID"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    _: Optional[User] = Depends(get_optional_user),
 ):
     """Get items owned by a specific user."""
     items, total = await ItemService.get_user_items(user_id, page, per_page)
@@ -188,7 +194,7 @@ async def get_user_items(
     total_pages = (total + per_page - 1) // per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=page,
         per_page=per_page,
@@ -199,7 +205,7 @@ async def get_user_items(
 # Item Statistics Endpoints
 @router.get("/stats/overview", response_model=ItemStatsResponse)
 async def get_item_stats(
-    current_user: User = Depends(get_user_with_permission("item:read")),
+    _: User = Depends(get_user_with_permission("item:read")),
 ):
     """Get overall item statistics."""
     return await ItemService.get_item_stats()
@@ -209,7 +215,7 @@ async def get_item_stats(
 @router.post("/bulk-update")
 async def bulk_update_items(
     update_data: ItemBulkUpdateRequest,
-    current_user: User = Depends(require_item_manage),
+    current_user: User = Depends(require_item_manage()),
 ):
     """Bulk update items (admin/moderator only)."""
     updated_count = await ItemService.bulk_update_items(update_data, current_user.id)
@@ -232,24 +238,24 @@ async def duplicate_item(
 
     # Get full item with related data
     full_item = await ItemService.get_item_by_id(duplicated_item.id)
-    return ItemResponse.from_orm(full_item)
+    return ItemResponse.model_validate(full_item)
 
 
 # Item Status Management
 @router.patch("/{item_id}/status")
 async def update_item_status(
     item_id: int = Path(..., description="Item ID"),
-    status: ItemStatus = Query(..., description="New status"),
+    item_status: ItemStatus = Query(..., description="New status"),
     current_user: User = Depends(get_current_active_user),
 ):
     """Update item status."""
-    item_data = ItemUpdateRequest(status=status)
+    item_data = ItemUpdateRequest(status=item_status)
     item = await ItemService.update_item(item_id, item_data, current_user.id)
 
     return {
-        "message": f"Item status updated to {status}",
+        "message": f"Item status updated to {item_status}",
         "item_id": item.id,
-        "status": status,
+        "status": item_status,
     }
 
 
@@ -258,7 +264,7 @@ async def update_item_status(
 async def toggle_item_favorite(
     item_id: int = Path(..., description="Item ID"),
     favorite_data: ItemFavoriteRequest = ...,
-    current_user: User = Depends(get_current_active_user),
+    _: User = Depends(get_current_active_user),
 ):
     """Toggle item favorite status (placeholder)."""
     # TODO: Implement favorite functionality
@@ -275,7 +281,7 @@ async def get_category_items(
     category_id: int = Path(..., description="Category ID"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    _: Optional[User] = Depends(get_optional_user),
 ):
     """Get items in a specific category."""
     search_data = ItemSearchRequest(
@@ -287,7 +293,7 @@ async def get_category_items(
     total_pages = (total + per_page - 1) // per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=page,
         per_page=per_page,
@@ -305,7 +311,7 @@ async def get_nearby_items(
     ),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    _: Optional[User] = Depends(get_optional_user),
 ):
     """Get items near a specific location."""
     search_data = ItemSearchRequest(
@@ -321,7 +327,7 @@ async def get_nearby_items(
     total_pages = (total + per_page - 1) // per_page
 
     return ItemListResponse(
-        items=[ItemResponse.from_orm(item) for item in items],
+        items=[ItemResponse.model_validate(item) for item in items],
         total=total,
         page=page,
         per_page=per_page,
@@ -332,9 +338,9 @@ async def get_nearby_items(
 # Similar Items (placeholder for future implementation)
 @router.get("/{item_id}/similar", response_model=ItemListResponse)
 async def get_similar_items(
-    item_id: int = Path(..., description="Item ID"),
+    _: int = Path(..., description="Item ID"),
     limit: int = Query(5, ge=1, le=20, description="Number of similar items"),
-    current_user: Optional[User] = Depends(get_optional_user),
+    __: Optional[User] = Depends(get_optional_user),
 ):
     """Get similar items (placeholder)."""
     # TODO: Implement similar items algorithm

@@ -1,3 +1,10 @@
+"""RBAC (Role-Based Access Control) schemas for Taakht backend.
+
+This module provides Pydantic schemas for RBAC-related API requests and responses,
+including role management, user role assignments, and permission checking.
+"""
+
+import re
 from datetime import datetime
 from typing import List, Optional
 
@@ -12,7 +19,7 @@ class RoleResponse(BaseModel):
     id: int
     name: str
     slug: str
-    description: Optional[str]
+    description: Optional[str] = None
     is_system_role: bool
     is_default: bool
     priority: int
@@ -20,69 +27,63 @@ class RoleResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class RoleCreateRequest(BaseModel):
-    """Schema for creating a new role."""
+    """Schema for role creation request."""
 
     name: str = Field(..., min_length=2, max_length=100, description="Role name")
-    slug: str = Field(
-        ..., min_length=2, max_length=100, description="Role slug (unique identifier)"
-    )
-    description: Optional[str] = Field(
-        None, max_length=500, description="Role description"
-    )
-    priority: int = Field(
-        0, ge=0, le=1000, description="Role priority (higher = more important)"
-    )
-    permissions: List[str] = Field(
-        default_factory=list, description="List of permission strings"
-    )
-    is_default: bool = Field(
-        False, description="Whether this role should be assigned to new users"
-    )
+    slug: str = Field(..., min_length=2, max_length=100, description="Role slug")
+    description: Optional[str] = Field(None, description="Role description")
+    priority: int = Field(0, ge=0, description="Role priority")
+    permissions: List[str] = Field(default_factory=list, description="Role permissions")
 
     @field_validator("slug")
     @classmethod
     def validate_slug(cls, v):
-        import re
-
-        if not re.match(r"^[a-z0-9_-]+$", v):
+        if not re.match(r"^[a-z0-9-]+$", v):
             raise ValueError(
-                "Slug can only contain lowercase letters, numbers, hyphens, and underscores"
+                "Slug can only contain lowercase letters, numbers, and hyphens"
             )
         return v
 
     @field_validator("permissions")
     @classmethod
     def validate_permissions(cls, v):
-        valid_permissions = [p.value for p in PermissionType]
-        for permission in v:
-            if permission not in valid_permissions:
-                raise ValueError(f"Invalid permission: {permission}")
+        valid_permissions = [perm.value for perm in PermissionType]
+        for perm in v:
+            if perm not in valid_permissions:
+                raise ValueError(f"Invalid permission: {perm}")
         return v
 
 
 class RoleUpdateRequest(BaseModel):
-    """Schema for updating a role."""
+    """Schema for role update request."""
 
     name: Optional[str] = Field(None, min_length=2, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
-    priority: Optional[int] = Field(None, ge=0, le=1000)
+    slug: Optional[str] = Field(None, min_length=2, max_length=100)
+    description: Optional[str] = None
+    priority: Optional[int] = Field(None, ge=0)
     permissions: Optional[List[str]] = None
-    is_default: Optional[bool] = None
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v):
+        if v is not None and not re.match(r"^[a-z0-9-]+$", v):
+            raise ValueError(
+                "Slug can only contain lowercase letters, numbers, and hyphens"
+            )
+        return v
 
     @field_validator("permissions")
     @classmethod
     def validate_permissions(cls, v):
-        if v is None:
-            return v
-        valid_permissions = [p.value for p in PermissionType]
-        for permission in v:
-            if permission not in valid_permissions:
-                raise ValueError(f"Invalid permission: {permission}")
+        if v is not None:
+            valid_permissions = [perm.value for perm in PermissionType]
+            for perm in v:
+                if perm not in valid_permissions:
+                    raise ValueError(f"Invalid permission: {perm}")
         return v
 
 
@@ -92,26 +93,21 @@ class UserRoleResponse(BaseModel):
     id: int
     user_id: int
     role_id: int
-    assigned_by_id: Optional[int]
-    reason: Optional[str]
+    assigned_by_id: Optional[int] = None
+    reason: Optional[str] = None
     created_at: datetime
-    expires_at: Optional[datetime]
+    expires_at: Optional[datetime] = None
     role: RoleResponse
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class UserRoleAssignRequest(BaseModel):
-    """Schema for assigning a role to a user."""
+    """Schema for user role assignment request."""
 
-    role_id: int = Field(..., description="ID of the role to assign")
-    reason: Optional[str] = Field(
-        None, max_length=500, description="Reason for role assignment"
-    )
-    expires_at: Optional[datetime] = Field(
-        None, description="When the role assignment expires"
-    )
+    role_id: int = Field(..., description="Role ID to assign")
+    reason: Optional[str] = Field(None, description="Reason for assignment")
+    expires_at: Optional[datetime] = Field(None, description="Expiration date")
 
 
 class UserPermissionsResponse(BaseModel):
@@ -119,16 +115,23 @@ class UserPermissionsResponse(BaseModel):
 
     user_id: int
     permissions: List[str]
-    roles: List[str]  # Role names
+    roles: List[str]
 
 
 class PermissionCheckRequest(BaseModel):
-    """Schema for checking user permissions."""
+    """Schema for permission check request."""
 
     permissions: List[str] = Field(..., description="Permissions to check")
-    require_all: bool = Field(
-        False, description="Whether all permissions are required or just one"
-    )
+    require_all: bool = Field(False, description="Require all permissions")
+
+    @field_validator("permissions")
+    @classmethod
+    def validate_permissions(cls, v):
+        valid_permissions = [perm.value for perm in PermissionType]
+        for perm in v:
+            if perm not in valid_permissions:
+                raise ValueError(f"Invalid permission: {perm}")
+        return v
 
 
 class PermissionCheckResponse(BaseModel):

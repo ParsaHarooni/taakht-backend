@@ -1,90 +1,71 @@
 #!/usr/bin/env python3
-"""
-Environment setup script for Taakht Backend.
-This script helps set up the environment configuration for different environments.
+"""Environment setup script for Taakht backend.
+
+This script helps users set up their environment by creating necessary
+directories and copying environment configuration files.
 """
 
-import os
 import shutil
 from pathlib import Path
 
 
-def create_env_file(environment: str = "development"):
-    """Create .env file from template."""
+def create_env_file():
+    """Create .env file from env.example if it doesn't exist."""
+    env_example = Path("env.example")
+    env_file = Path(".env")
 
-    # Check if .env already exists
-    if os.path.exists(".env"):
-        print("⚠️  .env file already exists. Skipping creation.")
-        return
+    if not env_example.exists():
+        print("❌ env.example file not found!")
+        return False
 
-    # Check if env.example exists
-    if not os.path.exists("env.example"):
-        print("❌ env.example file not found. Please create it first.")
-        return
+    if env_file.exists():
+        print("✅ .env file already exists")
+        return True
 
-    # Copy env.example to .env
-    shutil.copy("env.example", ".env")
-
-    # Update environment in .env file
-    with open(".env", "r") as f:
-        content = f.read()
-
-    # Replace ENVIRONMENT value
-    content = content.replace("ENVIRONMENT=development", f"ENVIRONMENT={environment}")
-
-    with open(".env", "w") as f:
-        f.write(content)
-
-    print(f"✅ Created .env file with {environment} environment")
+    try:
+        shutil.copy2(env_example, env_file)
+        print("✅ Created .env file from env.example")
+        print("📝 Please edit .env file with your configuration")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to create .env file: {e}")
+        return False
 
 
 def create_directories():
-    """Create necessary directories."""
-    directories = [
-        "logs",
-        "uploads",
-        "uploads/items",
-        "uploads/users",
-    ]
+    """Create necessary directories for the application."""
+    directories = ["logs", "uploads", "uploads/images", "uploads/temp"]
 
     for directory in directories:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-        print(f"✅ Created directory: {directory}")
+        dir_path = Path(directory)
+        if not dir_path.exists():
+            try:
+                dir_path.mkdir(parents=True, exist_ok=True)
+                print(f"✅ Created directory: {directory}")
+            except Exception as e:
+                print(f"❌ Failed to create directory {directory}: {e}")
+        else:
+            print(f"✅ Directory already exists: {directory}")
 
 
 def main():
     """Main setup function."""
     print("🚀 Setting up Taakht Backend environment...")
-
-    # Get environment from user
-    env = input(
-        "Enter environment (development/production/test) [development]: "
-    ).strip()
-    if not env:
-        env = "development"
-
-    if env not in ["development", "production", "test"]:
-        print("❌ Invalid environment. Using development.")
-        env = "development"
+    print()
 
     # Create .env file
-    create_env_file(env)
+    create_env_file()
+    print()
 
     # Create directories
     create_directories()
+    print()
 
-    print(f"\n🎉 Environment setup complete for {env}!")
-    print("\nNext steps:")
-    print("1. Edit .env file with your specific configuration")
-    print("2. Run: uv sync (to install dependencies)")
-    print("3. Run: uv run python main.py (to start the server)")
-
-    if env == "production":
-        print("\n⚠️  Production setup:")
-        print("- Update SECRET_KEY and JWT_SECRET_KEY in .env")
-        print("- Configure DATABASE_URL for PostgreSQL")
-        print("- Set up proper CORS_ORIGINS")
-        print("- Configure SMTP settings for email functionality")
+    print("🎉 Environment setup complete!")
+    print("📋 Next steps:")
+    print("   1. Edit .env file with your configuration")
+    print("   2. Install dependencies: uv sync")
+    print("   3. Run the application: uv run python main.py")
 
 
 if __name__ == "__main__":

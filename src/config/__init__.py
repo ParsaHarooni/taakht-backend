@@ -1,6 +1,12 @@
-from .database import close_db, get_tortoise_config, init_db
-from .logging import get_logger, setup_logging
-from .settings import get_settings, settings
+"""Configuration module for Taakht backend.
+
+This module provides centralized configuration management including settings,
+database configuration, logging setup, and environment-specific configurations.
+"""
+
+from .settings import settings, get_settings
+from .database import init_db, close_db, get_tortoise_config
+from .logging import setup_logging, get_logger
 
 __all__ = [
     "settings",
