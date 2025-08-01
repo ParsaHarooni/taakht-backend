@@ -28,7 +28,7 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
   - Password hashing with bcrypt
   - Password reset functionality (placeholder for email)
   - Authentication middleware and dependencies
-  - Role-based access control
+  - Role-based access control (RBAC) with comprehensive permission system
 
 - **Phase 2.1**: User Management API ✅
   - User registration and authentication endpoints
@@ -41,8 +41,17 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
 ### 🔄 **Current Progress**
 - **Phase 1.3**: Authentication & Authorization ✅
 - **Phase 2.1**: User Management API ✅
-- **Phase 2.2**: Item Management API (Pending)
+- **Phase 2.2**: Item Management API ✅
+  - Item CRUD operations with comprehensive validation
+  - Advanced search and filtering with location-based search
+  - Item statistics and analytics
+  - Bulk operations for admin/moderators
+  - Item duplication and status management
+  - Category-based item browsing
+  - Location-based nearby item search
+  - View tracking and engagement metrics
 - **Phase 2.3**: Category Management API (Pending)
+- **Phase 2.4**: RBAC Management API ✅
 - **Phase 3**: Trading System (Pending)
 
 ### **Phase 1: Project Setup & Foundation**
@@ -61,20 +70,20 @@ A FastAPI-based backend service for the Taakht Item-to-Item Trading Platform.
   - [x] Create ItemImage model (id, item_id, image_url, is_primary)
   - [x] Set up Tortoise ORM migrations
 
-- [ ] **1.3** Authentication & Authorization
-  - [ ] Implement JWT token authentication
-  - [ ] Create user registration endpoint
-  - [ ] Create user login endpoint
-  - [ ] Create password reset functionality
-  - [ ] Set up authentication middleware
-  - [ ] Implement role-based access control
+- [x] **1.3** Authentication & Authorization
+  - [x] Implement JWT token authentication
+  - [x] Create user registration endpoint
+  - [x] Create user login endpoint
+  - [x] Create password reset functionality
+  - [x] Set up authentication middleware
+  - [x] Implement role-based access control
 
 ### **Phase 2: Core API Endpoints**
-- [ ] **2.1** User Management
-  - [ ] GET `/api/users/me` - Get current user profile
-  - [ ] PUT `/api/users/me` - Update user profile
-  - [ ] GET `/api/users/{user_id}` - Get public user profile
-  - [ ] GET `/api/users/{user_id}/items` - Get user's items
+- [x] **2.1** User Management
+  - [x] GET `/api/users/me` - Get current user profile
+  - [x] PUT `/api/users/me` - Update user profile
+  - [x] GET `/api/users/{user_id}` - Get public user profile
+  - [x] GET `/api/users/{user_id}/items` - Get user's items
 
 - [ ] **2.2** Item Management
   - [ ] POST `/api/items` - Create new item listing

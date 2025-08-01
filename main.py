@@ -1,11 +1,12 @@
-import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from src.config import settings, setup_logging, init_db, close_db
+import uvicorn
+from fastapi import FastAPI
+
+from src.config import close_db, init_db, settings, setup_logging
 from src.middlewares.cors import setup_cors
-from src.routes import users
+from src.routes import items, rbac, users
+from src.services.rbac import RBACService
 
 # Setup logging
 logger = setup_logging()
@@ -17,13 +18,17 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
-    
+
     # Initialize database
     await init_db()
+
+    # Initialize RBAC system
+    await RBACService.initialize_default_roles()
+
     logger.info("Application startup complete")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application...")
     await close_db()
@@ -45,13 +50,16 @@ setup_cors(app)
 
 # Include routers
 app.include_router(users.router)
+app.include_router(rbac.router)
+app.include_router(items.router)
 
 # Add additional middleware for production
 if settings.ENVIRONMENT == "production":
     from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
     app.add_middleware(
-        TrustedHostMiddleware, 
-        allowed_hosts=["*"]  # Configure this properly in production
+        TrustedHostMiddleware,
+        allowed_hosts=["*"],  # Configure this properly in production
     )
 
 

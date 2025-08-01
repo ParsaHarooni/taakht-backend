@@ -2,16 +2,17 @@ import logging
 import logging.config
 import sys
 from pathlib import Path
+
 from .settings import settings
 
 
 def setup_logging():
     """Setup logging configuration based on environment."""
-    
+
     # Create logs directory if it doesn't exist
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
-    
+
     # Logging configuration
     logging_config = {
         "version": 1,
@@ -33,7 +34,9 @@ def setup_logging():
             "console": {
                 "class": "logging.StreamHandler",
                 "level": settings.LOG_LEVEL,
-                "formatter": "default" if settings.ENVIRONMENT == "production" else "detailed",
+                "formatter": (
+                    "default" if settings.ENVIRONMENT == "production" else "detailed"
+                ),
                 "stream": sys.stdout,
             },
             "file": {
@@ -86,17 +89,17 @@ def setup_logging():
             },
         },
     }
-    
+
     # Apply logging configuration
     logging.config.dictConfig(logging_config)
-    
+
     # Set specific loggers
     logger = logging.getLogger("taakht")
     logger.info(f"Logging initialized for {settings.ENVIRONMENT} environment")
-    
+
     return logger
 
 
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance with the given name."""
-    return logging.getLogger(f"src.{name}") 
+    return logging.getLogger(f"src.{name}")

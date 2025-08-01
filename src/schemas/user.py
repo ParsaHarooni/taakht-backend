@@ -1,11 +1,13 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserStatus(str, Enum):
     """User status enumeration for API."""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"
@@ -15,29 +17,42 @@ class UserStatus(str, Enum):
 # Request Schemas
 class UserRegisterRequest(BaseModel):
     """Schema for user registration."""
-    username: str = Field(..., min_length=3, max_length=50, description="Username (letters, numbers, underscores only)")
+
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=50,
+        description="Username (letters, numbers, underscores only)",
+    )
     email: EmailStr = Field(..., description="Valid email address")
-    password: str = Field(..., min_length=8, description="Password (minimum 8 characters)")
+    password: str = Field(
+        ..., min_length=8, description="Password (minimum 8 characters)"
+    )
     first_name: Optional[str] = Field(None, max_length=100, description="First name")
     last_name: Optional[str] = Field(None, max_length=100, description="Last name")
-    
-    @field_validator('username')
+
+    @field_validator("username")
     @classmethod
     def validate_username(cls, v):
         import re
-        if not re.match(r'^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Username can only contain letters, numbers, and underscores')
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError(
+                "Username can only contain letters, numbers, and underscores"
+            )
         return v
 
 
 class UserLoginRequest(BaseModel):
     """Schema for user login."""
+
     username: str = Field(..., description="Username or email")
     password: str = Field(..., description="Password")
 
 
 class UserUpdateRequest(BaseModel):
     """Schema for user profile updates."""
+
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     bio: Optional[str] = Field(None, max_length=1000)
@@ -56,17 +71,22 @@ class UserUpdateRequest(BaseModel):
 
 class UserPasswordChangeRequest(BaseModel):
     """Schema for password change."""
+
     current_password: str = Field(..., description="Current password")
-    new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)")
+    new_password: str = Field(
+        ..., min_length=8, description="New password (minimum 8 characters)"
+    )
 
 
 class UserPasswordResetRequest(BaseModel):
     """Schema for password reset request."""
+
     email: EmailStr = Field(..., description="Email address for password reset")
 
 
 class UserPasswordResetConfirmRequest(BaseModel):
     """Schema for password reset confirmation."""
+
     token: str = Field(..., description="Password reset token")
     new_password: str = Field(..., min_length=8, description="New password")
 
@@ -74,6 +94,7 @@ class UserPasswordResetConfirmRequest(BaseModel):
 # Response Schemas
 class UserResponse(BaseModel):
     """Schema for user response."""
+
     id: int
     username: str
     email: str
@@ -96,13 +117,14 @@ class UserResponse(BaseModel):
     rating_count: int
     created_at: datetime
     last_active_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
 
 
 class UserProfileResponse(BaseModel):
     """Schema for user profile response (public view)."""
+
     id: int
     username: str
     first_name: Optional[str]
@@ -118,13 +140,14 @@ class UserProfileResponse(BaseModel):
     rating_count: int
     created_at: datetime
     last_active_at: Optional[datetime]
-    
+
     class Config:
         from_attributes = True
 
 
 class UserStatsResponse(BaseModel):
     """Schema for user statistics response."""
+
     total_trades: int
     successful_trades: int
     success_rate: float
@@ -138,6 +161,7 @@ class UserStatsResponse(BaseModel):
 
 class UserAuthResponse(BaseModel):
     """Schema for authentication response."""
+
     user: UserResponse
     access_token: str
     refresh_token: str
@@ -147,6 +171,7 @@ class UserAuthResponse(BaseModel):
 
 class UserListResponse(BaseModel):
     """Schema for user list response."""
+
     users: List[UserProfileResponse]
     total: int
     page: int
@@ -156,19 +181,25 @@ class UserListResponse(BaseModel):
 
 class UserSearchRequest(BaseModel):
     """Schema for user search request."""
+
     query: Optional[str] = Field(None, description="Search query for username or name")
     city: Optional[str] = Field(None, description="Filter by city")
     state: Optional[str] = Field(None, description="Filter by state")
     country: Optional[str] = Field(None, description="Filter by country")
     min_rating: Optional[float] = Field(None, ge=0, le=5, description="Minimum rating")
-    min_trades: Optional[int] = Field(None, ge=0, description="Minimum number of trades")
-    is_verified: Optional[bool] = Field(None, description="Filter by verification status")
+    min_trades: Optional[int] = Field(
+        None, ge=0, description="Minimum number of trades"
+    )
+    is_verified: Optional[bool] = Field(
+        None, description="Filter by verification status"
+    )
     page: int = Field(1, ge=1, description="Page number")
     per_page: int = Field(20, ge=1, le=100, description="Items per page")
 
 
 class UserPreferencesResponse(BaseModel):
     """Schema for user preferences response."""
+
     notification_email: bool
     notification_push: bool
     notification_sms: bool
@@ -178,8 +209,9 @@ class UserPreferencesResponse(BaseModel):
 
 class UserPreferencesUpdateRequest(BaseModel):
     """Schema for user preferences update."""
+
     notification_email: Optional[bool] = None
     notification_push: Optional[bool] = None
     notification_sms: Optional[bool] = None
     language: Optional[str] = Field(None, max_length=10)
-    timezone: Optional[str] = Field(None, max_length=50) 
+    timezone: Optional[str] = Field(None, max_length=50)
